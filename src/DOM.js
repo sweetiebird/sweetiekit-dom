@@ -206,6 +206,11 @@ class Node extends EventTarget {
     }
   }
   set previousElementSibling(previousElementSibling) {}
+  
+  get nodeValue() {
+    return null;
+  }
+  set nodeValue(nodeValue) {}
 
   contains(el) {
     for (;;) {
@@ -2443,6 +2448,11 @@ class Text extends CharacterNode {
   }
   set nodeName(nodeName) {}
 
+  get nodeValue() {
+    return this.value;
+  }
+  set nodeValue(nodeValue) {}
+
   get firstChild() {
     return null;
   }
@@ -2472,6 +2482,11 @@ class Comment extends CharacterNode {
     return '#comment';
   }
   set nodeName(nodeName) {}
+
+  get nodeValue() {
+    return this.value;
+  }
+  set nodeValue(nodeValue) {}
 
   [util.inspect.custom]() {
     return `<!--${this.value}-->`;
