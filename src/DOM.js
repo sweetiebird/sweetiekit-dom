@@ -2469,7 +2469,7 @@ class HTMLImageElement extends HTMLSrcableElement {
     const [attrs = [], value = '', location = null] = arguments;
     super('IMG', attrs, value, location);
 
-    this.image = new bindings.nativeImage();
+    this.image = new bindings.nativeImage({attrs, value, location});
 
     this.on('attribute', (name, value) => {
       if (name === 'src' && value) {

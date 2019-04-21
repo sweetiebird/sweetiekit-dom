@@ -107,21 +107,41 @@ if (!nativeVm) {
     make(options) {
       options = Object.assign({}, options || {})
       const vm = options.vm || require('vm')
-      options.global = options.global || Object.create(null)
+      options.global = options.global || global
       if (options.sandbox == null) {
         options.sandbox = {
           window: options.global,
           document: options.global.document,
+          navigator: options.global.navigator,
           global: options.global,
           process,
+          setInterval,
+          clearInterval,
+          setTimeout,
+          clearTimeout,
+          alert: console.log,
+          THREE,
         }
       }
-      vm.createContext(options.sandbox); // Contextify the sandbox.
+      const runInThis = (options.sandbox === global);
+      if (!runInThis) {
+        vm.createContext(options.sandbox); // Contextify the sandbox.
+      }
+      options.beforeRun = options.beforeRun || (({window, code, filename, sandbox, options}) => {
+        sandbox.window = sandbox.window || window
+        sandbox.navigator = sandbox.navigator || window.navigator
+        sandbox.document = sandbox.document || window.document
+      })
+
       options.run = options.run || (({window, code, filename, args, options}) => {
         const name = (new URL(options.url)).origin+(filename.startsWith('/')?'':'/')+filename;
         //console.log('options.run', name, code, {args});
         const script = new vm.Script(code, {filename});
-        return script.runInContext(options.sandbox);
+        if (runInThis) {
+          return script.runInThisContext()
+        } else {
+          return script.runInContext(options.sandbox);
+        }
       })
       return {
         getGlobal() {
@@ -141,8 +161,8 @@ if (!nativeVm) {
   }
 }
 
-GlobalContext.args = {};
-GlobalContext.version = '';
+GlobalContext.args = GlobalContext.args || {};
+GlobalContext.version = GlobalContext.version || '';
 
 // Class imports.
 const {_parseDocument, _parseDocumentAst, Document, DocumentFragment, DocumentType, DOMImplementation, initDocument} = require('./Document');
@@ -484,9 +504,12 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
       return Promise.reject(new Error('constraints not met'));
     }
   }
+  const vendor = (options.vendor != null) ? options.vendor : 'SweetieKit';
+  const version = (options.version != null) ? options.version : GlobalContext.version;
+  const userAgent = (options.userAgent != null) ? options.userAgent : `Mozilla/5.0 (OS) AppleWebKit/999.0 (KHTML, like Gecko) Chrome/999.0.0.0 Safari/999.0 ${vendor}/${version}`
   window.navigator = {
-    userAgent: `Mozilla/5.0 (OS) AppleWebKit/999.0 (KHTML, like Gecko) Chrome/999.0.0.0 Safari/999.0 SweetieKit/${GlobalContext.version}`,
-    vendor: 'SweetieKit',
+    userAgent,
+    vendor,
     platform: os.platform(),
     hardwareConcurrency: os.cpus().length,
     appCodeName: 'Mozilla',
@@ -557,24 +580,27 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     this._emit('destroy', {window: this});
   };
   window.URL = URL;
-  window.console = console;
-  window.alert = console.log;
+  window.console = window.console || console;
+  window.alert = window.alert || console.log;
+  const _setTimeout = setTimeout;
   window.setTimeout = (fn, timeout, args) => {
     fn = fn.bind.apply(fn, [window].concat(args));
     fn[symbols.windowSymbol] = window;
     const id = ++rafIndex;
     fn[symbols.idSymbol] = id;
     timeouts[_findFreeSlot(timeouts)] = fn;
-    fn[symbols.timeoutSymbol] = setTimeout(fn, timeout, args);
+    fn[symbols.timeoutSymbol] = _setTimeout(fn, timeout, args);
     return id;
   };
+  const _clearTimeout = clearTimeout;
   window.clearTimeout = id => {
     const index = timeouts.findIndex(t => t && t[symbols.idSymbol] === id);
     if (index !== -1) {
-      clearTimeout(timeouts[index][symbols.timeoutSymbol]);
+      _clearTimeout(timeouts[index][symbols.timeoutSymbol]);
       timeouts[index] = null;
     }
   };
+  const _setInterval = setInterval;
   window.setInterval = (fn, interval, args) => {
     if (interval < 10) {
       interval = 10;
@@ -584,13 +610,14 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     const id = ++rafIndex;
     fn[symbols.idSymbol] = id;
     intervals[_findFreeSlot(intervals)] = fn;
-    fn[symbols.timeoutSymbol] = setInterval(fn, interval, args);
+    fn[symbols.timeoutSymbol] = _setInterval(fn, interval, args);
     return id;
   };
+  const _clearInterval = clearInterval;
   window.clearInterval = id => {
     const index = intervals.findIndex(i => i && i[symbols.idSymbol] === id);
     if (index !== -1) {
-      clearInterval(intervals[index][symbols.timeoutSymbol]);
+      _clearInterval(intervals[index][symbols.timeoutSymbol]);
       intervals[index] = null;
     }
   };
