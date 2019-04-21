@@ -376,13 +376,13 @@ sweetiekit.load = (src, options = {}) => {
         baseUrl = utils._getBaseUrl(src);
       }
 
-      return sweetiekit(htmlString, {
+      return sweetiekit(htmlString, Object.assign({
         url: options.url || src,
         baseUrl,
         dataPath: options.dataPath,
         args: options.args,
         replacements: options.replacements,
-      });
+      }, options));
     });
 };
 sweetiekit.download = (src, dst) => sweetiekit.load(src, {
@@ -404,11 +404,3 @@ sweetiekit.setVersion = newVersion => {
   GlobalContext.version = newVersion;
 };
 module.exports = sweetiekit;
-
-if (require.main === module) {
-  if (process.argv.length === 3) {
-    const baseUrl = 'file://' + __dirname + '/';
-    const u = new URL(process.argv[2], baseUrl).href;
-    sweetiekit.load(u);
-  }
-}

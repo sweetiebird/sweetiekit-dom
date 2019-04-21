@@ -68,7 +68,7 @@ module.exports._makeHtmlCollectionProxy = _makeHtmlCollectionProxy;
 
 const _runJavascript = (jsString, window, filename = 'script', lineOffset = 0, colOffset = 0) => {
   try {
-    window.vm.run(jsString, filename, lineOffset, colOffset);
+    window.vm.run(window, jsString, filename, lineOffset, colOffset);
   } catch (err) {
     console.warn(err.stack);
   }
@@ -147,7 +147,7 @@ module.exports._normalizePrototype = _normalizePrototype;
 module.exports._storeOriginalWindowPrototypes = function (window, prototypesSymbol) {
   window[prototypesSymbol] = {};
   NORMALIZE_LIST.forEach(prototypeName => {
-    window[prototypesSymbol][prototypeName] = window[prototypeName];
+    window[prototypesSymbol][prototypeName] = window[prototypeName] || global[prototypeName];
   });
 };
 

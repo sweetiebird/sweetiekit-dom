@@ -2594,7 +2594,7 @@ class HTMLAudioElement extends HTMLMediaElement {
     super('AUDIO', attrs, value);
 
     this.readyState = HTMLMediaElement.HAVE_NOTHING;
-    this.audio = new bindings.nativeAudio.Audio();
+    this.audio = new bindings.nativeAudio.Audio({attrs, value});
 
     this.on('attribute', (name, value) => {
       if (name === 'src' && value) {

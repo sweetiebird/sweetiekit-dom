@@ -100,17 +100,41 @@ let {
   nativeWindow,
 } = bindings;
 
-window = (typeof window === 'undefined') ? Object.create(null) : window
+//window = (typeof window === 'undefined') ? Object.create(null) : window
 
 if (!nativeVm) {
   nativeVm = {
-    make() {
+    make(options) {
+      options = Object.assign({}, options || {})
+      const vm = options.vm || require('vm')
+      options.global = options.global || Object.create(null)
+      if (options.sandbox == null) {
+        options.sandbox = {
+          window: options.global,
+          document: options.global.document,
+          global: options.global,
+          process,
+        }
+      }
+      vm.createContext(options.sandbox); // Contextify the sandbox.
+      options.run = options.run || (({window, code, filename, args, options}) => {
+        const name = (new URL(options.url)).origin+(filename.startsWith('/')?'':'/')+filename;
+        //console.log('options.run', name, code, {args});
+        const script = new vm.Script(code, {filename});
+        return script.runInContext(options.sandbox);
+      })
       return {
         getGlobal() {
-          return window
+          return options.global
         },
-        run(filename) {
-          console.log('run', filename)
+        run(window, code, filename, ...args) {
+          if (!options.sandbox.window) {
+            options.sandbox.window = window
+          }
+            if (options.beforeRun) {
+                options.beforeRun({code, filename, sandbox: options.sandbox, window, options})
+            }
+            return options.run({window, code, filename, args, options});
         }
       }
     }
@@ -403,7 +427,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     }
   })(HTMLAudioElement);
 
-  const vmo = nativeVm.make();
+  const vmo = nativeVm.make(options);
   const window = vmo.getGlobal();
   window.vm = vmo;
 
@@ -413,14 +437,14 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   const windowStartScript = `(() => {
     //${!options.args.require ? 'global.require = undefined;' : ''}
 
-    const _logStack = err => {
-      console.warn(err);
-    };
-    process.on('uncaughtException', _logStack);
-    process.on('unhandledRejection', _logStack);
+    //const _logStack = err => {
+      //console.warn(err);
+    //};
+    //process.on('uncaughtException', _logStack);
+    //process.on('unhandledRejection', _logStack);
 
     //global.process = undefined;
-    global.setImmediate = undefined;
+    //global.setImmediate = undefined;
     //window.global = undefined;
   })();`;
 
@@ -461,8 +485,8 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     }
   }
   window.navigator = {
-    userAgent: `Mozilla/5.0 (OS) AppleWebKit/999.0 (KHTML, like Gecko) Chrome/999.0.0.0 Safari/999.0 Exokit/${GlobalContext.version}`,
-    vendor: 'Exokit',
+    userAgent: `Mozilla/5.0 (OS) AppleWebKit/999.0 (KHTML, like Gecko) Chrome/999.0.0.0 Safari/999.0 SweetieKit/${GlobalContext.version}`,
+    vendor: 'SweetieKit',
     platform: os.platform(),
     hardwareConcurrency: os.cpus().length,
     appCodeName: 'Mozilla',
@@ -1158,7 +1182,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     },
   });
 
-  vmo.run(windowStartScript, 'window-start-script.js');
+  vmo.run(window, windowStartScript, 'window-start-script.js');
 
   const _destroyTimeouts = window => {
     const _pred = fn => fn[symbols.windowSymbol] === window;
@@ -1403,9 +1427,9 @@ GlobalContext._makeWindow = _makeWindow;
 const _makeWindowWithDocument = (s, options, parent, top) => {
   const window = _makeWindow(options, parent, top);
   window.document = _parseDocument(s, window);
-  if (typeof document === 'undefined') {
-    document = window.document;
-  }
+  // if (typeof document === 'undefined') {
+  //   document = window.document;
+  // }
   return window;
 };
 module.exports._makeWindowWithDocument = _makeWindowWithDocument;
