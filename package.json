@@ -2,7 +2,7 @@
   "name": "sweetiekit-dom",
   "version": "0.0.0",
   "main": "index.js",
-  "repository": "https://github.com/sweetiebird/sweetiekit-dom.git",
+  "repository": "https://github.com/sweetiekit/sweetiekit-dom.git",
   "author": "Shawn Presser <shawnpresser@gmail.com>",
   "license": "MIT",
   "private": false,
