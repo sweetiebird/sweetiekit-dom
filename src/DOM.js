@@ -1522,6 +1522,13 @@ class HTMLLoadableElement extends HTMLElement {
 }
 module.exports.HTMLLoadableElement = HTMLLoadableElement;
 
+class HTMLHeadElement extends HTMLElement {
+  constructor() {
+    super('HEAD');
+  }
+}
+module.exports.HTMLHeadElement = HTMLHeadElement;
+
 class HTMLBodyElement extends HTMLElement {
   constructor() {
     super('BODY');

@@ -119,6 +119,7 @@ const _makeSandbox = () => {
     Document, DocumentFragment, DocumentType, DOMImplementation, initDocument,
     Element,
     HTMLElement,
+    HTMLHeadElement,
     HTMLBodyElement,
     HTMLAnchorElement,
     HTMLStyleElement,
@@ -212,6 +213,7 @@ const {
   Element,
   DOMTokenList,
   HTMLElement,
+  HTMLHeadElement,
   HTMLBodyElement,
   HTMLAnchorElement,
   HTMLStyleElement,
@@ -852,6 +854,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   window.scrollY = 0;
   window[symbols.htmlTagsSymbol] = {
     DOCUMENT: Document,
+    HEAD: HTMLHeadElement,
     BODY: HTMLBodyElement,
     A: HTMLAnchorElement,
     STYLE: HTMLStyleElement,
@@ -873,6 +876,8 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   // DOM.
   window.Element = Element;
   window.HTMLElement = HTMLElement;
+  window.HTMLHeadElement = HTMLHeadElement;
+  window.HTMLBodyElement = HTMLBodyElement;
   window.HTMLAnchorElement = HTMLAnchorElement;
   window.HTMLStyleElement = HTMLStyleElement;
   window.HTMLLinkElement = HTMLLinkElement;
@@ -891,6 +896,12 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   window.DOMTokenList = DOMTokenList;
   window.NodeList = NodeList;
   window.HTMLCollection = HTMLCollection;
+
+  // TODO
+  //window.HTMLDivElement = HTMLDivElement;
+  //window.HTMLUListElement = HTMLUListElement;
+  //window.HTMLLIElement = HTMLLIElement;
+  //window.HTMLTableElement = HTMLTableElement;
 
   // /* window.MediaStreamTrack = MediaStreamTrack;
   // window.RTCRtpReceiver = RTCRtpReceiver;
