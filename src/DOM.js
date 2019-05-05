@@ -1076,8 +1076,10 @@ class Element extends Node {
     switch (this.tagName) {
       case 'DOCUMENT':
       case 'HTML':
-      case 'BODY':
-        return window.innerWidth;
+      case 'BODY': {
+        const ownerDocument = this.ownerDocument || this;
+        return ownerDocument.defaultView.innerWidth;
+      }
       case 'CANVAS':
       case 'IMAGE':
       case 'VIDEO':
@@ -1091,8 +1093,10 @@ class Element extends Node {
     switch (this.tagName) {
       case 'DOCUMENT':
       case 'HTML':
-      case 'BODY':
-        return window.innerHeight;
+      case 'BODY': {
+        const ownerDocument = this.ownerDocument || this;
+        return ownerDocument.defaultView.innerHeight;
+      }
       case 'CANVAS':
       case 'IMAGE':
       case 'VIDEO':
