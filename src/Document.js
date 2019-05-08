@@ -138,22 +138,25 @@ function initDocument (document, window) {
 
   if (window.top === window) {
     document.addEventListener('pointerlockchange', () => {
-      const iframes = document.getElementsByTagName('iframe');
+      /* const iframes = document.getElementsByTagName('iframe');
       for (let i = 0; i < iframes.length; i++) {
         const iframe = iframes[i];
         if (iframe.contentDocument) {
-          iframe.contentDocument._emit('pointerlockchange');
+          // iframe.contentDocument._emit('pointerlockchange'); // XXX send this down
         }
-      }
+      } */
+
     });
     document.addEventListener('fullscreenchange', () => {
-      const iframes = document.getElementsByTagName('iframe');
+      /* const iframes = document.getElementsByTagName('iframe');
       for (let i = 0; i < iframes.length; i++) {
         const iframe = iframes[i];
         if (iframe.contentDocument) {
+          // iframe.contentDocument._emit('pointerlockchange'); // XXX send this down
           iframe.contentDocument._emit('fullscreenchange');
         }
-      }
+      } */
+
     });
   }
 
