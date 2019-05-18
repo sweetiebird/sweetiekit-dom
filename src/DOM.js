@@ -343,6 +343,7 @@ const _makeChildrenProxy = el => {
   const result = [];
   result.item = i => {
     if (typeof i === 'number') {
+      result.update();
       return result[i];
     } else {
       return undefined;
@@ -350,16 +351,23 @@ const _makeChildrenProxy = el => {
   };
   result.update = () => {
     result.length = 0;
-
-    for (let i = 0; i < el.childNodes.length; i++) {
-      const childNode = el.childNodes[i];
+    for (const childNode of el.childNodes) {
       if (childNode instanceof HTMLElement) {
         result.push(childNode);
       }
     }
   };
-  result.update();
-  return result;
+
+  return new Proxy(result, {
+    get: function(e, prop) {
+      if (typeof prop === 'number') {
+        return e.item(prop);
+      } else {
+        result.update();
+        return e[prop];
+      }
+    },
+  });
 };
 
 const _cssText = style => {
@@ -2345,7 +2353,9 @@ class HTMLTextareaElement extends HTMLElement {
   get textLength() {
     return this.value.length;
   }
-  set textLength(textLength) {}
+  set textLength(textLength) {
+    textLength = textLength;
+  }
 
   get innerHTML() {
     return this.textContent;
@@ -2360,7 +2370,22 @@ class CharacterNode extends Node {
   constructor(value) {
     super();
 
-    this.value = value;
+    this._value = value;
+  }
+
+  get value() {
+    return this._value;
+  }
+  set value(value) {
+    this._value = value;
+    this._emit('value');
+  }
+
+  get nodeValue() {
+    return this.value;
+  }
+  set nodeValue(nodeValue) {
+    this.value = nodeValue;
   }
 
   get textContent() {
@@ -2368,8 +2393,6 @@ class CharacterNode extends Node {
   }
   set textContent(textContent) {
     this.value = textContent;
-
-    this._emit('value');
   }
 
   get data() {
@@ -2377,22 +2400,26 @@ class CharacterNode extends Node {
   }
   set data(data) {
     this.value = data;
-
-    this._emit('value');
   }
   get length() {
     return this.value.length;
   }
-  set length(length) {}
+  set length(length) {
+    length = length;
+  }
 
   get firstChild() {
     return null;
   }
-  set firstChild(firstChild) {}
+  set firstChild(firstChild) {
+    firstChild = firstChild;
+  }
   get lastChild() {
     return null;
   }
-  set lastChild(lastChild) {}
+  set lastChild(lastChild) {
+    lastChild = lastChild;
+  }
 
   traverse(fn) {
     fn(this);
