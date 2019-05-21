@@ -104,6 +104,9 @@ let {
 
 if (!nativeVm) {
   nativeVm = {
+    isCompiling() {
+      return false;
+    },
     make(options) {
       options = Object.assign({}, options || {})
       const vm = options.vm || require('vm')
