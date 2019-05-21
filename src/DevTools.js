@@ -7,22 +7,22 @@ const {HTMLIframeElement} = DOM;
 // const DEVTOOLS_PORT = 9223;
 
 const _getReplServer = (() => {
-  // const htermRepl = require('hterm-repl');
-  // let replServer = null;
-  // return () => new Promise((accept, reject) => {
-  //   if (!replServer) {
-  //     htermRepl(null, (err, newReplServer) => {
-  //       if (!err) {
-  //         replServer = newReplServer;
-  //         accept(replServer);
-  //       } else  {
-  //         reject(err);
-  //       }
-  //     });
-  //   } else {
-  //     accept(replServer);
-  //   }
-  // });
+  const htermRepl = require('hterm-repl');
+  let replServer = null;
+  return () => new Promise((accept, reject) => {
+    if (!replServer) {
+      htermRepl(null, (err, newReplServer) => {
+        if (!err) {
+          replServer = newReplServer;
+          accept(replServer);
+        } else  {
+          reject(err);
+        }
+      });
+    } else {
+      accept(replServer);
+    }
+  });
 })();
 
 let id = 0;
@@ -98,9 +98,9 @@ class DevTools {
 
 module.exports = {
   async requestDevTools(context, document) {
+    //return {}
     const replServer = await _getReplServer();
-    //return new DevTools(context, document, replServer);
-    return {}
+    return new DevTools(context, document, replServer);
   },
 };
 
