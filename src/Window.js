@@ -102,6 +102,55 @@ let {
 
 //window = (typeof window === 'undefined') ? Object.create(null) : window
 
+const _makeSandbox = () => {
+  return {
+    window: options.global,
+    document: options.global.document,
+    global: options.global,
+    navigator: options.global.navigator,
+    Request, Response, Headers, Blob,
+    console,
+    fetch,
+    XMLHttpRequest,
+    CustomEvent, DragEvent, ErrorEvent, Event, EventTarget, KeyboardEvent, MessageEvent, MouseEvent, WheelEvent, PromiseRejectionEvent,
+    History,
+    Location,
+    DevTools,
+    Document, DocumentFragment, DocumentType, DOMImplementation, initDocument,
+    Element,
+    HTMLElement,
+    HTMLBodyElement,
+    HTMLAnchorElement,
+    HTMLStyleElement,
+    HTMLScriptElement,
+    HTMLLinkElement,
+    HTMLImageElement,
+    HTMLAudioElement,
+    HTMLVideoElement,
+    HTMLSourceElement,
+    HTMLIFrameElement,
+    SVGElement,
+    HTMLCanvasElement,
+    HTMLTextareaElement,
+    HTMLTemplateElement,
+    createImageBitmap,
+    DOMRect,
+    DOMPoint,
+    Node,
+    NodeList,
+    Text,
+    Comment,
+    process,
+    setInterval,
+    clearInterval,
+    setTimeout,
+    clearTimeout,
+    alert: console.log,
+    THREE,
+    WebSocket,
+  }
+}
+
 if (!nativeVm) {
   nativeVm = {
     isCompiling() {
@@ -112,19 +161,8 @@ if (!nativeVm) {
       const vm = options.vm || require('vm')
       options.global = options.global || global
       if (options.sandbox == null) {
-        options.sandbox = {
-          window: options.global,
-          document: options.global.document,
-          navigator: options.global.navigator,
-          global: options.global,
-          process,
-          setInterval,
-          clearInterval,
-          setTimeout,
-          clearTimeout,
-          alert: console.log,
-          THREE,
-        }
+        //options.sandbox = _makeSandbox();
+        options.sandbox = global;
       }
       const runInThis = (options.sandbox === global);
       if (!runInThis) {
@@ -134,6 +172,7 @@ if (!nativeVm) {
         sandbox.window = sandbox.window || window
         sandbox.navigator = sandbox.navigator || window.navigator
         sandbox.document = sandbox.document || window.document
+        sandbox.browser = sandbox.browser || window.broser
       })
 
       options.run = options.run || (({window, code, filename, args, options}) => {
@@ -148,16 +187,16 @@ if (!nativeVm) {
       })
       return {
         getGlobal() {
-          return options.global
+          return options.global;
         },
         run(window, code, filename, ...args) {
           if (!options.sandbox.window) {
             options.sandbox.window = window
           }
-            if (options.beforeRun) {
-                options.beforeRun({code, filename, sandbox: options.sandbox, window, options})
-            }
-            return options.run({window, code, filename, args, options});
+          if (options.beforeRun) {
+              options.beforeRun({code, filename, sandbox: options.sandbox, window, options})
+          }
+          return options.run({window, code, filename, args, options});
         }
       }
     }
