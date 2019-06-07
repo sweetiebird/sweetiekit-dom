@@ -34,7 +34,7 @@ const WebSocket = require('ws/lib/websocket');
 //   RTCRtpSender, */
 //   RTCRtpTransceiver,
 //   RTCSessionDescription,
-  
+
 //   RTCPeerConnectionIceEvent,
 //   RTCDataChannelEvent,
 //   RTCDataChannelMessageEvent,
@@ -493,6 +493,14 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   const window = vmo.getGlobal();
   window.vm = vmo;
 
+  // window already exists, and we're running in a global context?
+  if (window.location && window.location.reload) {
+    if (window.OnReload) {
+      window.OnReload(options, window);
+    }
+    return window;
+  }
+
   // Store original prototypes for converting to and from native and JS.
   utils._storeOriginalWindowPrototypes(window, symbols.prototypesSymbol);
 
@@ -885,12 +893,12 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   // window.RTCRtpReceiver = RTCRtpReceiver;
   // window.RTCRtpSender = RTCRtpSender; */
   // window.MediaStream = class MediaStream {};
-  
+
   // window.RTCPeerConnection = RTCPeerConnection;
   // window.webkitRTCPeerConnection = RTCPeerConnection; // for feature detection
   // window.RTCSessionDescription = RTCSessionDescription;
   // window.RTCIceCandidate = RTCIceCandidate;
-  
+
   // window.RTCPeerConnectionIceEvent = RTCPeerConnectionIceEvent;
   // window.RTCDataChannelEvent = RTCDataChannelEvent;
   // window.RTCDataChannelMessageEvent = RTCDataChannelMessageEvent;
@@ -1311,7 +1319,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
       loading = true;
     }
   });
-  
+
   const rafCbs = [];
   window[symbols.rafCbsSymbol] = rafCbs;
   const timeouts = [];
@@ -1381,7 +1389,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     // tickAnimationFrame.window = null;
     return tickAnimationFrame;
   })();
-  
+
   const _makeMrDisplays = () => {
     const _bindMRDisplay = display => {
       display.onrequestanimationframe = _makeRequestAnimationFrame(window);
@@ -1394,7 +1402,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
         });
       };
     };
-    
+
     const fakeVrDisplay = new FakeVRDisplay(window);
     fakeVrDisplay.onrequestpresent = layers => {
       if (!GlobalContext.fakePresentState.fakeVrDisplay) {
