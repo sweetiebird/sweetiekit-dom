@@ -1,6 +1,6 @@
 {
   "name": "sweetiekit-dom",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "index.js",
   "repository": "https://github.com/sweetiekit/sweetiekit-dom.git",
   "author": "Shawn Presser <shawnpresser@gmail.com>",
