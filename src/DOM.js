@@ -1785,7 +1785,7 @@ class HTMLScriptElement extends HTMLLoadableElement {
   }
 
   get innerHTML() {
-    return parse5.serialize(this);
+    return this.textContent;
   }
   set innerHTML(innerHTML) {
     innerHTML = innerHTML + '';
