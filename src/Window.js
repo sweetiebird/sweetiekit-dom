@@ -210,6 +210,7 @@ GlobalContext.version = GlobalContext.version || '';
 const {_parseDocument, _parseDocumentAst, Document, DocumentFragment, DocumentType, DOMImplementation, initDocument} = require('./Document');
 const {
   Element,
+  DOMTokenList,
   HTMLElement,
   HTMLBodyElement,
   HTMLAnchorElement,
@@ -887,6 +888,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   window.Node = Node;
   window.Text = Text;
   window.Comment = Comment;
+  window.DOMTokenList = DOMTokenList;
   window.NodeList = NodeList;
   window.HTMLCollection = HTMLCollection;
 

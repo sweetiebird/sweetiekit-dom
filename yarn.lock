@@ -307,11 +307,6 @@ tr46@^1.0.1:
   dependencies:
     punycode "^2.1.0"
 
-trim@0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/trim/-/trim-0.0.1.tgz#5858547f6b290757ee95cccc666fb50084c460dd"
-  integrity sha1-WFhUf2spB1fulczMZm+1AITEYN0=
-
 typeson-registry@^1.0.0-alpha.20:
   version "1.0.0-alpha.27"
   resolved "https://registry.yarnpkg.com/typeson-registry/-/typeson-registry-1.0.0-alpha.27.tgz#11c0b9ef7fd486ac40f786fa2ac266e2f0624b47"
@@ -362,13 +357,6 @@ whatwg-url@7.0.0:
     lodash.sortby "^4.7.0"
     tr46 "^1.0.1"
     webidl-conversions "^4.0.2"
-
-window-classlist@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/window-classlist/-/window-classlist-0.0.4.tgz#5a1265da3a9b3a8ea60de332f1f1f94263b6a475"
-  integrity sha512-1iQT8tAazgpkq10MAiLWLg0MuVMJ4OHMgYZ9siZrI27HxDf3BFXD3PPt3jYUPt4t3LT8GV9cI9ZwXxH0A1OUHg==
-  dependencies:
-    trim "0.0.1"
 
 window-fetch@^0.0.10:
   version "0.0.10"
