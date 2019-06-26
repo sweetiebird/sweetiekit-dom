@@ -20,7 +20,7 @@
     "unescape": "^1.0.1",
     "window-classlist": "^0.0.4",
     "window-fetch": "^0.0.10",
-    "window-selector": "^0.0.6",
+    "window-selector": "^0.0.7",
     "window-xhr": "^0.0.29",
     "ws": "^6.2.1"
   }

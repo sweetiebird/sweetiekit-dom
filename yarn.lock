@@ -393,10 +393,10 @@ window-form-data@0.0.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-window-selector@^0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/window-selector/-/window-selector-0.0.6.tgz#f56e29d4e76dedefb163181ea820bb512231ff1a"
-  integrity sha512-ICkAJFkeEYgt8xkxX7UrfuWTQsurdzKK8uEicUJ0QjoizjaPI9PfrsZsOcCn7F8HloNkrc8CHtJ8IuaPEn1JkQ==
+window-selector@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/window-selector/-/window-selector-0.0.7.tgz#ac510d82ea6a532a98b1ab140545738fe8454ecd"
+  integrity sha512-K6rA9SC8YYAAkbkRPi10M8AyYDyochU5fw3TNyO2rLODsKuZ5V04bM5WSMZswYY6hjpH/KVXHnPQusaDrxfaYw==
 
 window-xhr@^0.0.29:
   version "0.0.29"
