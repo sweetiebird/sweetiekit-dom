@@ -7,35 +7,36 @@ const symbols = require('./symbols');
 const mkdirp = require('mkdirp');
 const parseIntStrict = require('parse-int');
 
-function _getBaseUrl(u) {
-  let baseUrl;
-  if (/^file:\/\/(.*)$/.test(u)) {
-    baseUrl = u;
+function _getBaseUrl(u, currentBaseUrl = '') {
+  let result;
+  if (/^file:\/\//.test(u)) {
+    result = u;
+  } else if (/^(?:data|blob):/.test(u)) {
+    result = currentBaseUrl;
   } else {
     const parsedUrl = url.parse(u);
-    baseUrl = url.format({
+    result = url.format({
       protocol: parsedUrl.protocol || 'http:',
       host: parsedUrl.host || '127.0.0.1',
       pathname: parsedUrl.pathname.replace(/\/[^\/]*\.[^\/]*$/, '') || '/',
     });
   }
-  if (!/\/$/.test(baseUrl) && !/\./.test(baseUrl.match(/\/([^\/]*)$/)[1])) {
-    baseUrl = baseUrl + '/';
+  if (!/\/$/.test(result) && !/\/[^\/]*?\.[^\/]*?$/.test(result)) {
+    result += '/';
   }
-  return baseUrl;
+  return result;
 }
 module.exports._getBaseUrl = _getBaseUrl;
 
-function _makeNormalizeUrl(baseUrl) {
-  return src => {
-    if (!/^[a-z]+:\/\//i.test(src)) {
-      src = new URL(src, baseUrl).href
+function _normalizeUrl(src, baseUrl) {
+  if (!/^(?:https?|data|blob):/.test(src)) {
+    return new URL(src, baseUrl).href
         .replace(/^(file:\/\/)\/([a-z]:.*)$/i, '$1$2');
-    }
+  } else {
     return src;
-  };
+  }
 }
-module.exports._makeNormalizeUrl = _makeNormalizeUrl;
+module.exports._normalizeUrl = _normalizeUrl;
 
 const _makeHtmlCollectionProxy = (el, query) => new Proxy(el, {
   get(target, prop) {

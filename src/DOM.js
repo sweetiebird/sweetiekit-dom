@@ -19,7 +19,7 @@ const GlobalContext = require('./GlobalContext');
 const symbols = require('./symbols');
 const {urls} = require('./urls');
 const utils = require('./utils');
-const {_elementGetter, _elementSetter} = utils;
+const {_elementGetter, _elementSetter, _normalizeUrl} = utils;
 const {XRRigidTransform} = require('./XR');
 
 he.encode.options.useNamedReferences = true;
@@ -1600,7 +1600,7 @@ class HTMLScriptElement extends HTMLLoadableElement {
       }
     });
     this.on('attached', () => {
-      if (this.src && this.isRunnable() && _isAttached() && !this.readyState) {
+      if (this.getAttribute('src') && this.isRunnable() && _isAttached() && !this.readyState) {
         const async = this.getAttribute('async');
         _loadRun(async !== null ? async !== 'false' : true);
       }
@@ -1613,7 +1613,8 @@ class HTMLScriptElement extends HTMLLoadableElement {
   }
 
   get src() {
-    return this.getAttribute('src') || '';
+    const src = this.getAttribute('src');
+    return src ? _normalizeUrl(src, this.ownerDocument.defaultView[symbols.optionsSymbol].baseUrl) : '';
   }
   set src(src) {
     src = src + '';
@@ -1989,7 +1990,7 @@ class HTMLIFrameElement extends HTMLSrcableElement {
                   const parentWindow = this.ownerDocument.defaultView;
                   const options = parentWindow[symbols.optionsSymbol];
 
-                  url = utils._makeNormalizeUrl(options.baseUrl)(url);
+                  url = _normalizeUrl(url, options.baseUrl);
                   const contentWindow = GlobalContext._makeWindow({
                     url,
                     baseUrl: url,

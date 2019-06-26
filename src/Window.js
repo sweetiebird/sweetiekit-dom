@@ -241,7 +241,7 @@ const {XMLHttpRequest} = require('./Network');
 const XR = require('./XR');
 const DevTools = require('./DevTools');
 const utils = require('./utils');
-const {_elementGetter, _elementSetter, _download} = utils;
+const {_elementGetter, _elementSetter, _download, _normalizeUrl} = utils;
 
 const btoa = s => Buffer.from(s, 'binary').toString('base64');
 const atob = s => Buffer.from(s, 'base64').toString('binary');
@@ -463,8 +463,6 @@ const _makeOnRequestHitTest = window => (origin, direction, cb) => nativeMl.Requ
 GlobalContext.fakeVrDisplayEnabled = false;
 
 const _makeWindow = (options = {}, parent = null, top = null) => {
-  const _normalizeUrl = utils._makeNormalizeUrl(options.baseUrl);
-
   const HTMLImageElementBound = (Old => class HTMLImageElement extends Old {
     constructor() {
       super(...arguments);
