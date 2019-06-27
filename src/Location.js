@@ -15,6 +15,7 @@ class Location extends EventEmitter {
     const newUrl = new url.URL(href, utils._getBaseUrl(this._url.href));
     this._url = newUrl;
     if (
+      true ||
       newUrl.origin !== oldUrl.origin ||
       newUrl.protocol !== oldUrl.protocol ||
       newUrl.username !== oldUrl.username ||

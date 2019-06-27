@@ -2057,7 +2057,7 @@ class HTMLIFrameElement extends HTMLSrcableElement {
                       console.log(`${source}:${line}: ${message}`);
                     }
                   };
-                  
+
                   const loadedUrl = await new Promise((accept, reject) => {
                     this.browser.onloadend = _url => {
                       accept(_url);
@@ -2068,7 +2068,7 @@ class HTMLIFrameElement extends HTMLSrcableElement {
                     
                     this.browser.load(url);
                   });
-                  
+
                   let onmessage = null;
                   const self = this;
                   this.contentWindow = {
@@ -2090,10 +2090,10 @@ class HTMLIFrameElement extends HTMLSrcableElement {
                         }));
                       } : null;
                     },
-                    destroy() {
+                    /* destroy() {
                       self.browser.destroy();
                       self.browser = null;
-                    },
+                    }, */
                   };
                   this.contentDocument = {
                     _emit() {},
@@ -2186,7 +2186,7 @@ class HTMLIFrameElement extends HTMLSrcableElement {
         }
       }
     });
-    this.on('destroy', () => {
+    /* this.on('destroy', () => {
       if (this.contentWindow) {
         this.contentWindow.destroy();
         this.contentWindow = null;
@@ -2196,7 +2196,7 @@ class HTMLIFrameElement extends HTMLSrcableElement {
       if (this.browser) {
         this.browser.destroy(); // XXX support this
       }
-    });
+    }); */
   }
   
   get width() {
@@ -2296,12 +2296,12 @@ class HTMLIFrameElement extends HTMLSrcableElement {
     this.browser && this.browser.runJs(jsString, scriptUrl, startLine);
   }
   
-  destroy() {
+  /* destroy() {
     if (this.live) {
       this._emit('destroy');
       this.live = false;
     }
-  }
+  } */
 }
 module.exports.HTMLIFrameElement = HTMLIFrameElement;
 

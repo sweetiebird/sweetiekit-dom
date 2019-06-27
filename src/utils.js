@@ -29,6 +29,9 @@ function _getBaseUrl(u, currentBaseUrl = '') {
 module.exports._getBaseUrl = _getBaseUrl;
 
 function _normalizeUrl(src, baseUrl) {
+  if (/^[/][/]/.test(src)) {
+    src = new URL(baseUrl || 'http://example.com').protocol + src;
+  }
   if (!/^(?:https?|data|blob):/.test(src)) {
     return new URL(src, baseUrl).href
         .replace(/^(file:\/\/)\/([a-z]:.*)$/i, '$1$2');
@@ -69,7 +72,7 @@ module.exports._makeHtmlCollectionProxy = _makeHtmlCollectionProxy;
 
 const _runJavascript = (jsString, window, filename = 'script', lineOffset = 0, colOffset = 0) => {
   try {
-    window.vm.run(window, jsString, filename, lineOffset, colOffset);
+    window.SweetieKitDOM_vm.run(window, jsString, filename, lineOffset, colOffset);
   } catch (err) {
     console.warn(err.stack);
   }

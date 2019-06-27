@@ -203,6 +203,7 @@ if (!nativeVm) {
     }
   }
 }
+SweetieKitDOM_nativeVm = nativeVm;
 
 GlobalContext.args = GlobalContext.args || {};
 GlobalContext.version = GlobalContext.version || '';
@@ -490,17 +491,23 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     }
   })(HTMLAudioElement);
 
-  const vmo = nativeVm.make(options);
-  const window = vmo.getGlobal();
-  window.vm = vmo;
+  if (typeof SweetieKitDOM_vm === 'undefined') {
+    SweetieKitDOM_vm = SweetieKitDOM_nativeVm.make(options);
+  }
+  const window = SweetieKitDOM_vm.getGlobal();
+  window.SweetieKitDOM_nativeVm = SweetieKitDOM_nativeVm;
+  window.SweetieKitDOM_vm = SweetieKitDOM_vm;
 
   // window already exists, and we're running in a global context?
+  /*
   if (window.location && window.location.reload) {
+    window[symbols.optionsSymbol] = options;
     if (window.OnReload) {
       window.OnReload(options, window);
     }
     return window;
   }
+  */
 
   // Store original prototypes for converting to and from native and JS.
   utils._storeOriginalWindowPrototypes(window, symbols.prototypesSymbol);
@@ -535,6 +542,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   window.document = null;
   const location = new Location(options.url);
   Object.defineProperty(window, 'location', {
+    configurable: true,
     get() {
       return location;
     },
@@ -633,6 +641,11 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   window.URL = URL;
   window.console = window.console || console;
   window.alert = window.alert || console.log;
+  const _remove = window._remove || (window._remove = (l, x) => {
+    let i = l.indexOf(x);
+    if (i >= 0) { l.splice(i, 1); };
+    return l;
+  });
   const _setTimeout = setTimeout;
   window.setTimeout = (fn, timeout, args) => {
     fn = fn.bind.apply(fn, [window].concat(args));
@@ -640,18 +653,19 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     const id = ++rafIndex;
     fn[symbols.idSymbol] = id;
     timeouts[_findFreeSlot(timeouts)] = fn;
-    fn[symbols.timeoutSymbol] = _setTimeout(fn, timeout, args);
+    fn[symbols.timeoutSymbol] = _setTimeout(
+      async (...args) => { await fn(...args); _remove(timeouts, fn); }, timeout, args);
     return id;
   };
-  const _clearTimeout = clearTimeout;
+  window._clearTimeout = window._clearTimeout || clearTimeout;
   window.clearTimeout = id => {
     const index = timeouts.findIndex(t => t && t[symbols.idSymbol] === id);
     if (index !== -1) {
-      _clearTimeout(timeouts[index][symbols.timeoutSymbol]);
+      window._clearTimeout(timeouts[index][symbols.timeoutSymbol]);
       timeouts[index] = null;
     }
   };
-  const _setInterval = setInterval;
+  window._setInterval = window._setInterval || setInterval;
   window.setInterval = (fn, interval, args) => {
     if (interval < 10) {
       interval = 10;
@@ -661,14 +675,14 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     const id = ++rafIndex;
     fn[symbols.idSymbol] = id;
     intervals[_findFreeSlot(intervals)] = fn;
-    fn[symbols.timeoutSymbol] = _setInterval(fn, interval, args);
+    fn[symbols.timeoutSymbol] = window._setInterval(fn, interval, args);
     return id;
   };
-  const _clearInterval = clearInterval;
+  window._clearInterval = window._clearInterval || clearInterval;
   window.clearInterval = id => {
     const index = intervals.findIndex(i => i && i[symbols.idSymbol] === id);
     if (index !== -1) {
-      _clearInterval(intervals[index][symbols.timeoutSymbol]);
+      window._clearInterval(intervals[index][symbols.timeoutSymbol]);
       intervals[index] = null;
     }
   };
@@ -736,7 +750,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
       if (blob) {
         return Promise.resolve(new Response(blob));
       } else {
-        u = _normalizeUrl(u);
+        u = _normalizeUrl(u, window.location.href);
         return _boundFetch(u, options);
       }
     } else {
@@ -763,7 +777,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   window.XMLHttpRequest = (Old => {
     class XMLHttpRequest extends Old {
       open(method, url, async, username, password) {
-        url = _normalizeUrl(url);
+        url = _normalizeUrl(url, window.location.href);
         return super.open(method, url, async, username, password);
       }
       get response() {
@@ -1189,7 +1203,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
         const normalizedSrc = blob ?
           'data:application/octet-stream;base64,' + blob.buffer.toString('base64')
         :
-          _normalizeUrl(src);
+          _normalizeUrl(src, window.location.href);
         super(normalizedSrc);
       }
     }
@@ -1225,11 +1239,12 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     }
   };
   Object.defineProperty(window, 'onload', {
+    configurable: true,
     get() {
       return window[symbols.disabledEventsSymbol]['load'] !== undefined ? window[symbols.disabledEventsSymbol]['load'] : _elementGetter(window, 'load');
     },
     set(onload) {
-      if (nativeVm.isCompiling()) {
+      if (SweetieKitDOM_nativeVm.isCompiling()) {
         this[symbols.disabledEventsSymbol]['load'] = onload;
       } else {
         if (window[symbols.disabledEventsSymbol]['load'] !== undefined) {
@@ -1241,11 +1256,12 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     },
   });
   Object.defineProperty(window, 'onerror', {
+    configurable: true,
     get() {
       return window[symbols.disabledEventsSymbol]['error'] !== undefined ? window[symbols.disabledEventsSymbol]['error'] : _elementGetter(window, 'error');
     },
     set(onerror) {
-      if (nativeVm.isCompiling()) {
+      if (SweetieKitDOM_nativeVm.isCompiling()) {
         window[symbols.disabledEventsSymbol]['error'] = onerror;
       } else {
         if (window[symbols.disabledEventsSymbol]['error'] !== undefined) {
@@ -1257,6 +1273,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     },
   });
   Object.defineProperty(window, 'onmessage', {
+    configurable: true,
     get() {
       return _elementGetter(window, 'message');
     },
@@ -1265,6 +1282,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     },
   });
   Object.defineProperty(window, 'onpopstate', {
+    configurable: true,
     get() {
       return _elementGetter(window, 'popstate');
     },
@@ -1273,10 +1291,11 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     },
   });
 
-  vmo.run(window, windowStartScript, 'window-start-script.js');
+  window.SweetieKitDOM_vm.run(window, windowStartScript, 'window-start-script.js');
 
-  const _destroyTimeouts = window => {
+  window._destroyTimeouts = window => {
     const _pred = fn => fn[symbols.windowSymbol] === window;
+    const { rafCbs, timeouts, intervals } = window._getState();
     for (let i = 0; i < rafCbs.length; i++) {
       const rafCb = rafCbs[i];
       if (rafCb && _pred(rafCb)) {
@@ -1286,21 +1305,64 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     for (let i = 0; i < timeouts.length; i++) {
       const timeout = timeouts[i];
       if (timeout && _pred(timeout)) {
-        clearTimeout(timeout[symbols.timeoutSymbol]);
+        clearTimeout(timeout[symbols.idSymbol]);
         timeouts[i] = null;
       }
     }
     for (let i = 0; i < intervals.length; i++) {
       const interval = intervals[i];
       if (interval && _pred(interval)) {
-        clearInterval(interval[symbols.timeoutSymbol]);
+        clearInterval(interval[symbols.idSymbol]);
         intervals[i] = null;
       }
     }
   };
 
+  window._currentTimeouts = window => {
+    const r = [];
+    const _pred = fn => fn[symbols.windowSymbol] === window;
+    for (let i = 0; i < rafCbs.length; i++) {
+      const rafCb = rafCbs[i];
+      if (rafCb != null && _pred(rafCb)) {
+        r.push({type: 'rafCb', value: rafCb});
+      }
+    }
+    for (let i = 0; i < timeouts.length; i++) {
+      const timeout = timeouts[i];
+      if (timeout != null && _pred(timeout)) {
+        r.push({type: 'setTimeout', value: timeout});
+      }
+    }
+    for (let i = 0; i < intervals.length; i++) {
+      const interval = intervals[i];
+      if (interval != null && _pred(interval)) {
+        r.push({type: 'setInterval', value: interval});
+      }
+    }
+    return r;
+  };
+  window._clearTimeouts = (r) => {
+    for (let {type, value} of r) {
+      switch (type) {
+        case 'rafCb':
+          _remove(rafCbs, value);
+          break;
+        case 'setTimeout':
+          clearTimeout(value[symbols.idSymbol]);
+          _remove(timeouts, value);
+          break;
+        case 'setInterval':
+          clearInterval(value[symbols.idSymbol]);
+          _remove(intervals, value);
+          break;
+        default:
+          throw new Error('unknown type');
+      }
+    }
+  }
+
   window.on('destroy', e => {
-    _destroyTimeouts(e.window);
+    window._destroyTimeouts(e.window);
   });
   window.history.on('popstate', (u, state) => {
     window.location.set(u);
@@ -1309,35 +1371,44 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
     event.state = state;
     window.dispatchEvent(event);
   });
-  let loading = false;
-  window.location.on('update', href => {
-    if (!loading) {
-      exokit.load(href, {
+  window.location.on('update', async href => {
+    window._emit('beforeunload');
+    window._emit('unload');
+
+    try {
+      window._prevTimeouts = window._currentTimeouts(window);
+      const newWindow = await require('./core').load(href, {
         dataPath: options.dataPath,
-      })
-        .then(newWindow => {
-          window._emit('beforeunload');
-          window._emit('unload');
-          window._emit('navigate', newWindow);
-
-          _destroyTimeouts(window);
-        })
-        .catch(err => {
-          loading = false;
-
-          const e = new ErrorEvent('error', {target: this});
-          e.message = err.message;
-          e.stack = err.stack;
-          this.dispatchEvent(e);
-        });
-      loading = true;
+      });
+      const _timeouts = window._prevTimeouts;
+      delete window._prevTimeouts;
+      window._clearTimeouts(_timeouts);
+      window._emit('navigate', newWindow);
+      window.SweetieKitDOM_vm.getGlobal().window = newWindow;
+      //window = newWindow;
+      
+    } catch (err) {
+      const e = new ErrorEvent('error', {target: this});
+      e.message = err.message;
+      e.stack = err.stack;
+      window.dispatchEvent(e);
     }
   });
 
-  const rafCbs = [];
+  const rafCbs = window.SweetieKitDOM_rafCbs || (window.SweetieKitDOM_rafCbs = []);
   window[symbols.rafCbsSymbol] = rafCbs;
-  const timeouts = [];
-  const intervals = [];
+  const timeouts = window.SweetieKitDOM_timeouts || (window.SweetieKitDOM_timeouts = []);
+  const intervals = window.SweetieKitDOM_intervals || (window.SweetieKitDOM_intervals = []);
+  const _thisWindow = window;
+  window[symbols.stateSymbol] = {
+    get rafCbs() { return rafCbs; },
+    get timeouts() { return timeouts; },
+    get intervals() { return intervals; },
+    get window() { return _thisWindow; },
+  };
+
+  window._getState = () => { return window[symbols.stateSymbol] };
+
   window.tickAnimationFrame = (() => {
     const localCbs = [];
     const _cacheLocalCbs = cbs => {
