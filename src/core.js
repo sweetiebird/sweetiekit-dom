@@ -316,7 +316,7 @@ const _runHtml = (element, window) => {
 };
 GlobalContext._runHtml = _runHtml;
 
-const sweetiekit = (s = '', options = {}) => {
+const SweetieKitDOM = (s = '', options = {}) => {
   options.url = options.url || 'http://127.0.0.1/';
   options.baseUrl = options.baseUrl || options.url;
   options.dataPath = options.dataPath || __dirname;
@@ -324,9 +324,8 @@ const sweetiekit = (s = '', options = {}) => {
   options.replacements = options.replacements || {};
   return _makeWindowWithDocument(s, options);
 };
-module.exports = sweetiekit;
 
-sweetiekit.load = (src, options = {}) => {
+SweetieKitDOM.load = (src, options = {}) => {
   if (!url.parse(src).protocol) {
     src = 'http://' + src;
   }
@@ -376,7 +375,7 @@ sweetiekit.load = (src, options = {}) => {
         baseUrl = utils._getBaseUrl(src);
       }
 
-      return sweetiekit(htmlString, Object.assign({
+      return SweetieKitDOM(htmlString, Object.assign({
         url: options.url || src,
         baseUrl,
         dataPath: options.dataPath,
@@ -385,7 +384,7 @@ sweetiekit.load = (src, options = {}) => {
       }, options));
     });
 };
-sweetiekit.download = (src, dst) => sweetiekit.load(src, {
+SweetieKitDOM.download = (src, dst) => SweetieKitDOM.load(src, {
   args: {
     download: dst,
     headless: true,
@@ -396,11 +395,11 @@ sweetiekit.download = (src, dst) => sweetiekit.load(src, {
       accept();
     });
   }));
-// sweetiekit.THREE = THREE;
-sweetiekit.setArgs = newArgs => {
+// SweetieKitDOM.THREE = THREE;
+SweetieKitDOM.setArgs = newArgs => {
   GlobalContext.args = newArgs;
 };
-sweetiekit.setVersion = newVersion => {
+SweetieKitDOM.setVersion = newVersion => {
   GlobalContext.version = newVersion;
 };
-module.exports = sweetiekit;
+module.exports = SweetieKitDOM;
