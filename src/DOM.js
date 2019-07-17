@@ -17,11 +17,24 @@ const {Event, EventTarget, MessageEvent, MouseEvent, ErrorEvent} = require('./Ev
 const GlobalContext = require('./GlobalContext');
 const symbols = require('./symbols');
 const {urls} = require('./urls');
-const utils = require('./utils');
+const utils = SweetieKitDOM_utils = require('./utils');
 const {_elementGetter, _elementSetter, _normalizeUrl} = utils;
 const {XRRigidTransform} = require('./XR');
 
 he.encode.options.useNamedReferences = true;
+
+if (!GlobalContext.WebGLRenderingContext) {
+  GlobalContext.WebGLRenderingContext = class WebGLRenderingContext {
+  };
+}
+if (!GlobalContext.WebGL2RenderingContext) {
+  GlobalContext.WebGL2RenderingContext = class WebGL2RenderingContext {
+  };
+}
+if (!GlobalContext.CanvasRenderingContext2D) {
+  GlobalContext.CanvasRenderingContext2D = class CanvasRenderingContext2D {
+  };
+}
 
 const _promiseSerial = async promiseFns => {
   for (let i = 0; i < promiseFns.length; i++) {
