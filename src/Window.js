@@ -559,9 +559,9 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   window.history = new History(location.href);
   function getUserMedia(constraints) {
     if (constraints.audio) {
-      return Promise.resolve(new MicrophoneMediaStream());
+      return Promise.resolve(new (window.MicrophoneMediaStream || GlobalContext.MicrophoneMediaStream)());
     } else if (constraints.video) {
-      const dev = new VideoDevice();
+      const dev = new (window.VideoDevice || GlobalContext.VideoDevice)();
       dev.constraints = constraints.video;
       return Promise.resolve(dev);
     } else {
@@ -1585,7 +1585,7 @@ const _makeWindow = (options = {}, parent = null, top = null) => {
   window.on('destroy', () => {
     GlobalContext.windows.splice(GlobalContext.windows.indexOf(window), 1);
   });
-
+  window.SweetieKitDOM_GlobalContext = GlobalContext;
   return window;
 };
 module.exports._makeWindow = _makeWindow;
