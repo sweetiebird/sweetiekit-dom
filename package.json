@@ -6,6 +6,9 @@
   "author": "Shawn Presser <shawnpresser@gmail.com>",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "test": "node --experimental-vm-modules . 'https://threejs.org/examples/webgl_animation_cloth.html' 2>&1 | >/dev/null grep 'TypeError: gl.getParameter is not a function' && exit 0 || exit 1"
+  },
   "dependencies": {
     "@rgrove/parse-xml": "^2.0.1",
     "css": "^2.2.4",
