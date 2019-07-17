@@ -79,6 +79,29 @@ const _runJavascript = (jsString, window, filename = 'script', lineOffset = 0, c
 };
 module.exports._runJavascript = _runJavascript;
 
+const _runJavascriptModule = async (jsString, window, url = window.location.href, lineOffset = 0, colOffset = 0) => {
+  try {
+    const scr = new (require('vm').SourceTextModule)(jsString, {url, lineOffset, colOffset});
+    await scr.link(async (...args) => {
+      if (window.SweetieKitDOM_Verbose) {
+        console.log('scr.link', ...args);
+      }
+      const [path, parent] = args;
+      const res = await window.fetch(path);
+      const s = await res.text();
+      return new (require('vm').SourceTextModule)(s, {
+        context: parent.context,
+        url: new URL(path, url).href
+      });
+    });
+    scr.instantiate();
+    return await scr.evaluate();
+  } catch (err) {
+    console.warn(err.stack);
+  }
+};
+module.exports._runJavascriptModule = _runJavascriptModule;
+
 const NORMALIZE_LIST = [
   'ArrayBuffer',
   'Buffer',
