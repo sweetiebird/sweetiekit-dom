@@ -712,6 +712,12 @@ class Element extends Node {
   constructor(tagName = 'DIV', attrs = [], value = '', location = null) {
     super();
 
+    for (let { name, value: v } of attrs) {
+      if (name === 'value') {
+        value = v;
+      }
+    }
+
     this.tagName = tagName;
     this.attrs = attrs;
     this.value = value;
@@ -722,6 +728,10 @@ class Element extends Node {
     this._innerHTML = '';
     this._classList = null;
     this._dataset = null;
+
+    if (window.SweetieKitDOM_Verbose) {
+      console.log('Element:', {tagName, attrs, value, location}, this);
+    }
 
     this.on('attribute', (name, value) => {
       if (name === 'id') {
@@ -2588,6 +2598,7 @@ class HTMLTextareaElement extends HTMLElement {
   set value(value) {
     if (this.ownerDocument) { // if this isn't initialization
       this.textContent = value;
+      this._emit('value');
     }
   }
 
