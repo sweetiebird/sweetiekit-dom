@@ -81,21 +81,20 @@ module.exports._runJavascript = _runJavascript;
 
 const _runJavascriptModule = async (jsString, window, url = window.location.href, lineOffset = 0, colOffset = 0) => {
   try {
-    const scr = new (require('vm').SourceTextModule)(jsString, {url, lineOffset, colOffset});
-    await scr.link(async (...args) => {
+    const script = new (require('vm').SourceTextModule)(jsString, {url, lineOffset, colOffset});
+    await script.link(async (path, parent) => {
       if (window.SweetieKitDOM_Verbose) {
-        console.log('scr.link', ...args);
+        console.log('SourceTextModule.link', path, parent, script);
       }
-      const [path, parent] = args;
       const res = await window.fetch(path);
-      const s = await res.text();
-      return new (require('vm').SourceTextModule)(s, {
+      const text = await res.text();
+      return new (require('vm').SourceTextModule)(text, {
         context: parent.context,
         url: new URL(path, url).href
       });
     });
-    scr.instantiate();
-    return await scr.evaluate();
+    script.instantiate();
+    return await script.evaluate();
   } catch (err) {
     console.warn(err.stack);
   }
