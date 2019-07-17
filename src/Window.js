@@ -178,7 +178,9 @@ if (!nativeVm) {
 
       options.run = options.run || (({window, code, filename, args, options}) => {
         const name = (new URL(options.url)).origin+(filename.startsWith('/')?'':'/')+filename;
-        //console.log('options.run', name, code, {args});
+        if (window.SweetieKitDOM_Verbose) {
+          console.log('Script.run', filename, name, code, {args});
+        }
         const script = new vm.Script(code, {filename});
         if (runInThis) {
           return script.runInThisContext()
@@ -189,6 +191,9 @@ if (!nativeVm) {
       return {
         getGlobal() {
           return options.global;
+        },
+        getContext() {
+          return options.sandbox === global ? null : options.sandbox;
         },
         run(window, code, filename, ...args) {
           if (!options.sandbox.window) {

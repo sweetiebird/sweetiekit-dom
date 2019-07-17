@@ -1777,10 +1777,16 @@ const _mapUrl = (u, window) => {
 class HTMLScriptElement extends HTMLLoadableElement {
   constructor(attrs = [], value = '', location = null) {
     super('SCRIPT', attrs, value, location);
+    if (window.SweetieKitDOM_Verbose) {
+      console.log('HTMLScriptElement:', {attrs, value, location}, this);
+    }
 
     this.readyState = null;
 
     const _loadRun = async => {
+      if (window.SweetieKitDOM_Verbose) {
+        console.log('HTMLScriptElement:_loadRun:', {async}, this);
+      }
       if (!async) {
         this.ownerDocument[symbols.addRunSymbol](this.loadRunNow.bind(this));
       } else {
@@ -1788,18 +1794,27 @@ class HTMLScriptElement extends HTMLLoadableElement {
       }
     };
     this.on('attribute', (name, value) => {
+      if (window.SweetieKitDOM_Verbose) {
+        console.log('HTMLScriptElement:attribute:', {name, value}, this);
+      }
       if (name === 'src' && value && this.isRunnable() && this.isConnected && !this.readyState) {
         const async = this.getAttribute('async');
         _loadRun(async !== null ? async !== 'false' : false);
       }
     });
     this.on('attached', () => {
+      if (window.SweetieKitDOM_Verbose) {
+        console.log('HTMLScriptElement:attached:', this);
+      }
       if (this.getAttribute('src') && this.isRunnable() && this.isConnected && !this.readyState) {
         const async = this.getAttribute('async');
         _loadRun(async !== null ? async !== 'false' : true);
       }
     });
     this.on('innerHTML', innerHTML => {
+      if (window.SweetieKitDOM_Verbose) {
+        console.log('HTMLScriptElement:innerHTML:', {innerHTML}, this);
+      }
       if (this.isRunnable() && this.isConnected && !this.readyState) {
         this.runNow();
       }
@@ -1857,59 +1872,90 @@ class HTMLScriptElement extends HTMLLoadableElement {
 
   isRunnable() {
     const {type} = this;
-    return !type || /^(?:(?:text|application)\/javascript|application\/ecmascript)$/.test(type);
+      if (window.SweetieKitDOM_Verbose) {
+        console.log('HTMLScriptElement:isRunnable:', {type}, this);
+      }
+    return !type || /^(?:(?:text|application)\/javascript|application\/ecmascript)$/.test(type) || (type === 'module');
+  }
+
+  isModule() {
+    return this.getAttribute('type') === 'module';
   }
 
   loadRunNow() {
+    if (window.SweetieKitDOM_Verbose) {
+      console.log('HTMLScriptElement:loadRunNow:', {module: this.isModule()}, this);
+    }
     this.readyState = 'loading';
-    
+
     const url = _mapUrl(this.src, this.ownerDocument.defaultView);
-    
-    return this.ownerDocument.resources.addResource((onprogress, cb) => {
-      this.ownerDocument.defaultView.fetch(url)
-        .then(res => {
+
+    return this.ownerDocument.resources.addResource(async (onprogress, cb) => {
+      try {
+        let s = this.innerHTML;
+        if (url) {
+          const res = await this.ownerDocument.defaultView.fetch(url);
           if (res.status >= 200 && res.status < 300) {
-            return res.text();
+            s = await res.text();
           } else {
-            return Promise.reject(new Error('script src got invalid status code: ' + res.status + ' : ' + url));
+            throw new Error('script src got invalid status code: ' + res.status + ' : ' + url);
           }
-        })
-        .then(s => {
-          utils._runJavascript(s, this.ownerDocument.defaultView, url);
+        }
+        if (s.trim()) {
+          if (this.type === 'module') {
+            await utils._runJavascriptModule(s, this.ownerDocument.defaultView, url);
+          } else {
+            await utils._runJavascript(s, this.ownerDocument.defaultView, url);
+          }
+        }
 
-          this.readyState = 'complete';
+        this.readyState = 'complete';
 
-          this.dispatchEvent(new Event('load', {target: this}));
-          
-          cb();
-        })
-        .catch(err => {
-          this.readyState = 'complete';
+        this.dispatchEvent(new Event('load', {target: this}));
 
-          const e = new ErrorEvent('error', {target: this});
-          e.message = err.message;
-          e.stack = err.stack;
-          this.dispatchEvent(e);
-          
-          cb(err);
-        });
+        cb();
+      } catch (err) {
+        this.readyState = 'complete';
+
+        const e = new ErrorEvent('error', {target: this});
+        e.message = err.message;
+        e.stack = err.stack;
+        this.dispatchEvent(e);
+
+        cb(err);
+      }
     });
   }
 
   runNow() {
     this.readyState = 'loading';
-    
+
     const innerHTML = this.childNodes[0].value;
     const window = this.ownerDocument.defaultView;
-    
-    return this.ownerDocument.resources.addResource((onprogress, cb) => {
-      utils._runJavascript(innerHTML, window, window.location.href, this.location && this.location.line !== null ? this.location.line - 1 : 0, this.location && this.location.col !== null ? this.location.col - 1 : 0);
 
-      this.readyState = 'complete';
-      
-      this.dispatchEvent(new Event('load', {target: this}));
+    return this.ownerDocument.resources.addResource(async (onprogress, cb) => {
+      try {
+        if (this.type === 'module') {
+          await utils._runJavascriptModule(innerHTML, window, window.location.href, this.location && this.location.line !== null ? this.location.line - 1 : 0, this.location && this.location.col !== null ? this.location.col - 1 : 0);
+        } else {
+          await utils._runJavascript(innerHTML, window, window.location.href, this.location && this.location.line !== null ? this.location.line - 1 : 0, this.location && this.location.col !== null ? this.location.col - 1 : 0);
+        }
 
-      cb();
+        this.readyState = 'complete';
+
+        this.dispatchEvent(new Event('load', {target: this}));
+
+        cb();
+      } catch (err) {
+        this.readyState = 'complete';
+
+        const e = new ErrorEvent('error', {target: this});
+        e.message = err.message;
+        e.stack = err.stack;
+        this.dispatchEvent(e);
+
+        cb(err);
+      }
     });
   }
 
