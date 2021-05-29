@@ -24,6 +24,6 @@
     "window-fetch": "^0.0.10",
     "window-selector": "^0.0.7",
     "window-xhr": "^0.0.29",
-    "ws": "^6.2.1"
+    "ws": "^7.4.6"
   }
 }
